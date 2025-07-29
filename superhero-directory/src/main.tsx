@@ -2,35 +2,29 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
+import { SuperheroListPage } from '~pages/superhero-list/superhero-list-page';
 import { SuperheroPage } from '~pages/superhero/superhero-page';
+
+import { Theme } from '@radix-ui/themes';
 
 import { Layout } from './app/layout/layout';
 import { Providers } from './app/providers';
 import './root.css';
 
+import '@radix-ui/themes/styles.css';
+
 function App() {
   return (
     <Providers>
       <BrowserRouter>
-        <Layout>
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <>
-                  <h1 className="font-display text-center text-4xl">
-                    Superhero Directory
-                  </h1>
-                  <p>
-                    Welcome to the Superhero Directory! Here you can find
-                    information about your favorite superheroes.
-                  </p>
-                </>
-              }
-            />
-            <Route path=":id" element={<SuperheroPage />} />
-          </Routes>
-        </Layout>
+        <Theme>
+          <Layout>
+            <Routes>
+              <Route path="/" element={<SuperheroListPage />} />
+              <Route path=":id" element={<SuperheroPage />} />
+            </Routes>
+          </Layout>
+        </Theme>
       </BrowserRouter>
     </Providers>
   );
