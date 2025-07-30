@@ -8,7 +8,7 @@ import { InfoBlock } from '~shared/ui/info-block';
 import { SearchInput } from '~shared/ui/search-input';
 
 import { ArrowUpIcon } from '@radix-ui/react-icons';
-import { Grid, Skeleton } from '@radix-ui/themes';
+import { Grid, Skeleton, Text } from '@radix-ui/themes';
 import { useDebounce } from '@uidotdev/usehooks';
 
 export function SuperheroListPage() {
@@ -41,6 +41,9 @@ export function SuperheroListPage() {
   const cardClickHandler = (id: string) => {
     navigate('/' + id);
   };
+
+  const displayedSuperheros = superheros?.slice(0, 50) || [];
+  const hasMoreResults = superheros && superheros.length > 50;
 
   return (
     <main className="flex flex-col gap-4">
@@ -75,17 +78,25 @@ export function SuperheroListPage() {
                   <Card title="Dummy title" subtitle="Dummy sub title" />
                 </Skeleton>
               ))
-          ) : superheros?.length ? (
-            superheros?.map(({ image, name, biography, id }) => (
-              <Card
-                key={id}
-                imgHref={image.url}
-                title={name}
-                subtitle={biography['full-name'] || '-'}
-                height="100%"
-                onClick={() => cardClickHandler(id)}
-              />
-            ))
+          ) : displayedSuperheros?.length ? (
+            <>
+              {displayedSuperheros?.map(({ image, name, biography, id }) => (
+                <Card
+                  key={id}
+                  imgHref={image.url}
+                  title={name}
+                  subtitle={biography['full-name'] || '-'}
+                  height="100%"
+                  onClick={() => cardClickHandler(id)}
+                />
+              ))}
+
+              {hasMoreResults && (
+                <Text className="col-span-2">
+                  To see more heroes please adjust your search parameters
+                </Text>
+              )}
+            </>
           ) : (
             <InfoBlock
               title={debouncedSearch ? 'Nothing found' : 'Start searching'}
