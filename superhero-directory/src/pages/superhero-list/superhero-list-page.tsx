@@ -21,6 +21,7 @@ export function SuperheroListPage() {
   const {
     data: superheros,
     isLoading,
+    isFetching,
     error,
   } = superheroApi.useSearchSuperheros({
     query: debouncedSearch,
@@ -53,7 +54,11 @@ export function SuperheroListPage() {
         your favorite superheroes.
       </p>
       <div className="max-w-xl">
-        <SearchInput value={searchInput} onChange={searchChangeHandler} />
+        <SearchInput
+          value={searchInput}
+          onChange={searchChangeHandler}
+          isLoading={isFetching}
+        />
       </div>
       {error ? (
         <InfoBlock />
@@ -70,15 +75,7 @@ export function SuperheroListPage() {
           gap="4"
           width="auto"
         >
-          {isLoading ? (
-            Array(12)
-              .fill(0)
-              .map((_, idx) => (
-                <Skeleton key={`Skeleton-Card-${idx}`}>
-                  <Card title="Dummy title" subtitle="Dummy sub title" />
-                </Skeleton>
-              ))
-          ) : displayedSuperheros?.length ? (
+          {displayedSuperheros?.length ? (
             <>
               {displayedSuperheros?.map(({ image, name, biography, id }) => (
                 <Card
@@ -97,6 +94,14 @@ export function SuperheroListPage() {
                 </Text>
               )}
             </>
+          ) : isLoading ? (
+            Array(12)
+              .fill(0)
+              .map((_, idx) => (
+                <Skeleton key={`Skeleton-Card-${idx}`}>
+                  <Card title="Dummy title" subtitle="Dummy sub title" />
+                </Skeleton>
+              ))
           ) : (
             <InfoBlock
               title={debouncedSearch ? 'Nothing found' : 'Start searching'}

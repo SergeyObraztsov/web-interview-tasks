@@ -22,6 +22,9 @@ export function useSearchSuperheros(params: Params) {
   return useQuery({
     queryKey: superheroKeys.search(query),
     enabled: !!query.trim(),
+    placeholderData: (prev) => {
+      return query.trim() ? prev : [];
+    },
     queryFn: async () => {
       const response: Superhero[] = await fetch(
         `${config.apiHost}/api/${config.apiToken}/search/${query}`
