@@ -1,15 +1,45 @@
 import { useState } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+
+import { superheroApi } from '~entities/superhero';
 
 import { Card } from '~shared/ui/card';
+import { InfoBlock } from '~shared/ui/info-block';
 import { SearchInput } from '~shared/ui/search-input';
 
-import { Grid } from '@radix-ui/themes';
+import { ArrowUpIcon } from '@radix-ui/react-icons';
+import { Grid, Skeleton } from '@radix-ui/themes';
+import { useDebounce } from '@uidotdev/usehooks';
 
 export function SuperheroListPage() {
-  const [searchInput, setSearchInput] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchInput, setSearchInput] = useState(searchParams.get('q') ?? '');
+  const debouncedSearch = useDebounce(searchInput, 500);
+
+  const navigate = useNavigate();
+
+  const {
+    data: superheros,
+    isLoading,
+    error,
+  } = superheroApi.useSearchSuperheros({
+    query: debouncedSearch,
+  });
 
   const searchChangeHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchInput(event.target.value);
+    const { value } = event.target;
+    setSearchInput(value);
+
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (value) next.set('q', value);
+      else next.delete('q');
+      return next;
+    });
+  };
+
+  const cardClickHandler = (id: string) => {
+    navigate('/' + id);
   };
 
   return (
@@ -22,29 +52,54 @@ export function SuperheroListPage() {
       <div className="max-w-xl">
         <SearchInput value={searchInput} onChange={searchChangeHandler} />
       </div>
-      <Grid
-        columns={{
-          initial: 'repeat(1, 1fr)',
-          xs: 'repeat(2, 1fr)',
-          sm: 'repeat(3, 1fr)',
-          md: 'repeat(4, 1fr)',
-          lg: 'repeat(5, 1fr)',
-          xl: 'repeat(6, 1fr)',
-        }}
-        gap="4"
-        width="auto"
-      >
-        <Card
-          imgHref={
-            'https://images.unsplash.com/photo-1617050318658-a9a3175e34cb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80'
-          }
-          title={'Test'}
-          subtitle={'SubTest'}
-          onClick={function (): void {
-            throw new Error('Function not implemented.');
+      {error ? (
+        <InfoBlock />
+      ) : (
+        <Grid
+          columns={{
+            initial: 'repeat(1, 1fr)',
+            xs: 'repeat(2, 1fr)',
+            sm: 'repeat(3, 1fr)',
+            md: 'repeat(4, 1fr)',
+            lg: 'repeat(5, 1fr)',
+            xl: 'repeat(6, 1fr)',
           }}
-        />
-      </Grid>
+          gap="4"
+          width="auto"
+        >
+          {isLoading ? (
+            Array(12)
+              .fill(0)
+              .map((_, idx) => (
+                <Skeleton key={`Skeleton-Card-${idx}`}>
+                  <Card title="Dummy title" subtitle="Dummy sub title" />
+                </Skeleton>
+              ))
+          ) : superheros?.length ? (
+            superheros?.map(({ image, name, biography, id }) => (
+              <Card
+                key={id}
+                imgHref={image.url}
+                title={name}
+                subtitle={biography['full-name'] || '-'}
+                height="100%"
+                onClick={() => cardClickHandler(id)}
+              />
+            ))
+          ) : (
+            <InfoBlock
+              title={debouncedSearch ? 'Nothing found' : 'Start searching'}
+              icon={
+                <ArrowUpIcon
+                  height={24}
+                  width={24}
+                  className="animate-bounce"
+                />
+              }
+            />
+          )}
+        </Grid>
+      )}
     </main>
   );
 }

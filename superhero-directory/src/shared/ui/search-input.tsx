@@ -15,7 +15,6 @@ export function SearchInput({
 }: SearchInput) {
   return (
     <TextField.Root
-      // className="ring-black-800 ring-2"
       radius="large"
       color="green"
       placeholder={placeholder}
