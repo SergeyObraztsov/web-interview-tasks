@@ -1,3 +1,5 @@
+import { FavoritesContextProvider } from '~shared/providers/favorites-context';
+
 import { QueryClientProvider } from './react-query';
 
 type Props = {
@@ -5,5 +7,9 @@ type Props = {
 };
 
 export const Providers = ({ children }: Props) => {
-  return <QueryClientProvider>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider>
+      <FavoritesContextProvider>{children}</FavoritesContextProvider>
+    </QueryClientProvider>
+  );
 };

@@ -3,18 +3,30 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 
 import { superheroApi } from '~entities/superhero';
 
+import {
+  useFavorites,
+  useToggleFavorite,
+} from '~shared/providers/favorites-context';
 import { Card } from '~shared/ui/card';
 import { InfoBlock } from '~shared/ui/info-block';
 import { SearchInput } from '~shared/ui/search-input';
 
 import { ArrowUpIcon } from '@radix-ui/react-icons';
-import { Grid, Skeleton, Text } from '@radix-ui/themes';
+import { Grid, Skeleton, Text, Button } from '@radix-ui/themes';
 import { useDebounce } from '@uidotdev/usehooks';
+
+import { FavoriteSuperheroCard } from './favorite-superhero-card';
 
 export function SuperheroListPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchInput, setSearchInput] = useState(searchParams.get('q') ?? '');
   const debouncedSearch = useDebounce(searchInput, 500);
+
+  // favorites hooks
+  const favoritesIds = useFavorites();
+  const toggleFavorite = useToggleFavorite();
+
+  const [showFavories, setShowFavories] = useState(false);
 
   const navigate = useNavigate();
 
@@ -43,6 +55,10 @@ export function SuperheroListPage() {
     navigate('/' + id);
   };
 
+  const toggleFavories = () => {
+    setShowFavories((prev) => !prev);
+  };
+
   const displayedSuperheros = superheros?.slice(0, 50) || [];
   const hasMoreResults = superheros && superheros.length > 50;
 
@@ -53,68 +69,101 @@ export function SuperheroListPage() {
         Welcome to the Superhero Directory! Here you can find information about
         your favorite superheroes.
       </p>
-      <div className="max-w-xl">
+
+      <div className="flex max-w-2xl gap-4">
         <SearchInput
+          className="w-full"
           value={searchInput}
           onChange={searchChangeHandler}
           isLoading={isFetching}
         />
+        <Button color="green" onClick={toggleFavories}>
+          {showFavories ? 'Скрыть избранное' : 'Показать избранное'}
+        </Button>
       </div>
-      {error ? (
-        <InfoBlock />
-      ) : (
-        <Grid
-          columns={{
-            initial: 'repeat(1, 1fr)',
-            xs: 'repeat(2, 1fr)',
-            sm: 'repeat(3, 1fr)',
-            md: 'repeat(4, 1fr)',
-            lg: 'repeat(5, 1fr)',
-            xl: 'repeat(6, 1fr)',
-          }}
-          gap="4"
-          width="auto"
-        >
-          {displayedSuperheros?.length ? (
-            <>
-              {displayedSuperheros?.map(({ image, name, biography, id }) => (
-                <Card
-                  key={id}
-                  imgHref={image.url}
-                  title={name}
-                  subtitle={biography['full-name'] || '-'}
-                  height="100%"
-                  onClick={() => cardClickHandler(id)}
-                />
-              ))}
 
-              {hasMoreResults && (
-                <Text className="col-span-2">
-                  To see more heroes please adjust your search parameters
-                </Text>
-              )}
-            </>
-          ) : isLoading ? (
-            Array(12)
-              .fill(0)
-              .map((_, idx) => (
-                <Skeleton key={`Skeleton-Card-${idx}`}>
-                  <Card title="Dummy title" subtitle="Dummy sub title" />
-                </Skeleton>
-              ))
+      {showFavories ? (
+        <>
+          <Grid
+            columns={{
+              initial: 'repeat(1, 1fr)',
+              xs: 'repeat(2, 1fr)',
+              sm: 'repeat(3, 1fr)',
+              md: 'repeat(4, 1fr)',
+              lg: 'repeat(5, 1fr)',
+              xl: 'repeat(6, 1fr)',
+            }}
+            gap="4"
+            width="auto"
+          >
+            {favoritesIds.map((id) => (
+              <FavoriteSuperheroCard id={id} key={id} />
+            ))}
+          </Grid>
+        </>
+      ) : (
+        <>
+          {error ? (
+            <InfoBlock />
           ) : (
-            <InfoBlock
-              title={debouncedSearch ? 'Nothing found' : 'Start searching'}
-              icon={
-                <ArrowUpIcon
-                  height={24}
-                  width={24}
-                  className="animate-bounce"
+            <Grid
+              columns={{
+                initial: 'repeat(1, 1fr)',
+                xs: 'repeat(2, 1fr)',
+                sm: 'repeat(3, 1fr)',
+                md: 'repeat(4, 1fr)',
+                lg: 'repeat(5, 1fr)',
+                xl: 'repeat(6, 1fr)',
+              }}
+              gap="4"
+              width="auto"
+            >
+              {displayedSuperheros?.length ? (
+                <>
+                  {displayedSuperheros?.map(
+                    ({ image, name, biography, id }) => (
+                      <Card
+                        key={id}
+                        imgHref={image.url}
+                        title={name}
+                        subtitle={biography['full-name'] || '-'}
+                        height="100%"
+                        onClick={() => cardClickHandler(id)}
+                        onIconButtonClick={() => toggleFavorite(id)}
+                        isFavorite={favoritesIds.includes(id)}
+                      />
+                    )
+                  )}
+
+                  {hasMoreResults && (
+                    <Text className="col-span-2">
+                      To see more heroes please adjust your search parameters
+                    </Text>
+                  )}
+                </>
+              ) : isLoading ? (
+                Array(12)
+                  .fill(0)
+                  .map((_, idx) => (
+                    <Skeleton key={`Skeleton-Card-${idx}`}>
+                      <Card title="Dummy title" subtitle="Dummy sub title" />
+                    </Skeleton>
+                  ))
+              ) : (
+                <InfoBlock
+                  title={debouncedSearch ? 'Nothing found' : 'Start searching'}
+                  icon={
+                    <ArrowUpIcon
+                      height={24}
+                      width={24}
+                      className="animate-bounce"
+                    />
+                  }
                 />
-              }
-            />
+              )}
+            </Grid>
           )}
-        </Grid>
+        </>
       )}
     </main>
   );

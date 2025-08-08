@@ -2,6 +2,12 @@ import { useParams } from 'react-router-dom';
 
 import { superheroApi } from '~entities/superhero';
 
+import {
+  useFavorites,
+  useToggleFavorite,
+} from '~shared/providers/favorites-context';
+import { FavoriteButton } from '~shared/ui/favorite-button';
+
 export function SuperheroPage() {
   const { id } = useParams();
   const {
@@ -9,6 +15,10 @@ export function SuperheroPage() {
     isLoading,
     error,
   } = superheroApi.useSuperhero({ id });
+
+  // favorites hooks
+  const favoritesIds = useFavorites();
+  const toggleFavorite = useToggleFavorite();
 
   if (isLoading) {
     return <p className="text-center text-gray-500">Loading...</p>;
@@ -28,9 +38,18 @@ export function SuperheroPage() {
           alt={superhero.name}
           className="mx-auto mb-4 block rounded-md shadow-md"
         />
-        <h1 className="mb-2 text-center text-4xl font-bold">
-          {superhero.name}
-        </h1>
+        <div className="flex w-full items-center justify-center gap-4">
+          <h1 className="mb-2 text-center text-4xl font-bold">
+            {superhero.name}
+          </h1>
+          {!!id && (
+            <FavoriteButton
+              size="3"
+              onIconButtonClick={() => toggleFavorite(id)}
+              isFavorite={favoritesIds.includes(id)}
+            />
+          )}
+        </div>
         <p className="text-center text-gray-600">
           {superhero.biography['full-name']}
         </p>
